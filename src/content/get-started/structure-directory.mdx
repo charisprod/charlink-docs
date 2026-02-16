@@ -1,0 +1,31 @@
+---
+title: "Structure Directory"
+updatedAt: "2026-02-16"
+summary: "Understand the core project layout, including components for UI configuration, data files for content, the public folder for assets, and SEO settings."
+navLabel: "Structure Directory"
+order: 2
+---
+
+This is the minimal directory structure to get an up and running CharLink.
+
+```bash
+┣ 📂 components/
+┃ ┗ 📁 icons
+┃ ┗ 📄 Layout.js
+┃ ┗ 📄 Online.tsx
+┃ ┗ 📄 ReusableStyles.js
+┃ ┗ 📄 Seo.js
+┃ ┗ 📄 WebLinks.js
+┣ 📂 data/
+┃ ┗ 📄 BioData.js
+┃ ┗ 📄 LinksData.js
+┣ 📁 public
+┣ 📄 next-seo.config.js
+```
+
+<Feedback marginY="16" variant="info">
+- The `components/WebLinks.js` is your [Frontend Configuration](/get-started/frontend).
+- The `data/` directory is where you [write your data](/get-started/update-info#update-biodata-linksdata).
+- The `public` folder is where all the photos are stored.
+- The `next-seo.config.js` is your [SEO Configuration](/get-started/seo).
+</Feedback>

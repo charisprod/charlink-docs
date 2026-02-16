@@ -1,0 +1,46 @@
+---
+title: "Frontend"
+updatedAt: "2026-02-16"
+summary: "Perfect custom landing page for your links on the world wide web."
+navLabel: "Frontend"
+order: 4
+---
+
+<Feedback marginY="16" variant="info">
+All frontend customization done inside `components/WebLinks.js`. If you want to update and add new section just look this file and update according to your need.
+</Feedback>
+
+### Add New Section
+
+- Add new section with specific `type` in `Linkdata.js`. Then copy `LinkSection` Code to create new section in `WebLinks.js` file. Make sure to create get data of that section as well.
+
+### Add Discord Status
+
+- Your Discord account **MUST** be linked to your [CHARIS account](https://charisprod.xyz/auth), and be a member of the [Charis Production](https://charisprod.xyz/invite) server.
+
+- Set `online: false,` in `data/BioData.js` to hide this option.
+
+### Add Spotify Status
+
+- Login to [https://spotify-github-profile.kittinanx.com/api/login](https://spotify-github-profile.kittinanx.com/api/login).
+
+- Follow these steps:
+![Spotify](/spotify.png)
+
+<Feedback marginY="16" variant="info">
+Or you can create your own Spotify APi: [Read Documentation](https://bit.ly/Spotify-ADLink).
+</Feedback>
+
+- Copy and paste the URL to:
+
+```BioData.js
+spotifyUrl: 'FIRST_URL',
+spotifyImg: 'SECOND_URL',
+```
+
+<Feedback marginY="16" variant="info">
+The APi only store `Access Token`, `Refresh Token`, and `Token Expired Timestamp`.
+![Spot API](/spot-api.png)
+</Feedback>
+
+- Same as Discord Status, set `spotify: false,` in `data/BioData.js` to hide this option.
