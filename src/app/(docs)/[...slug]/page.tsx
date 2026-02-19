@@ -4,6 +4,7 @@ import { formatDate } from "@/app/utils/formatDate";
 import { Column, Heading, Icon, Row, Media, Text, Card, HeadingNav, Meta, Schema, Button } from "@once-ui-system/core";
 import { baseURL, layout, schema } from "@/resources";
 import { CustomMDX } from "@/product/mdx";
+import { ScrollToHash } from '@/product/ScrollToHash';
 import { Metadata } from "next";
 import React from "react";
 
@@ -76,11 +77,9 @@ export default async function Docs({
             <Text variant="body-default-s" onBackground="neutral-weak">
               Last update: {formatDate(doc.metadata.updatedAt)}
             </Text>
-            {doc.metadata.github && (
-              <Button className="mt-20" href={"https://github.com/once-ui-system/core/blob/main/packages/core/src/" + doc.metadata.github} size="s" variant="secondary" prefixIcon="github" weight="default" data-border="rounded">
-                View on GitHub
-              </Button>
-            )}
+            <Button className="mt-20" href={"https://github.com/charisprod/charlink-docs/blob/main/src/content/" + doc.slug + ".mdx"} size="s" variant="secondary" prefixIcon="github" weight="default" data-border="rounded">
+              Read on GitHub
+            </Button>
           </Column>
           {doc.metadata.image && (
             <Media border="neutral-alpha-medium" enlarge src={doc.metadata.image} alt={"Thumbnail of " + doc.metadata.title} aspectRatio="16 / 9" radius="m" sizes="(max-width: 768px) 100vw, 768px" priority />
@@ -144,6 +143,7 @@ export default async function Docs({
               ) : <Row/>}
             </Row>
         </Column>
+        <ScrollToHash/>
       </Row>
       <Column gap="16" maxWidth={layout.sideNav.width} s={{hide: true}} fillHeight paddingLeft="24" borderLeft="neutral-alpha-medium">
         <HeadingNav position="sticky" top="80" fitHeight/>
