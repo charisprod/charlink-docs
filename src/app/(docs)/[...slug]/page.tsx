@@ -7,6 +7,9 @@ import { CustomMDX } from "@/product/mdx";
 import { ScrollToHash } from '@/product/ScrollToHash';
 import { Metadata } from "next";
 import React from "react";
+import { urlFor } from "@/app/utils/sanity";
+
+const sections = ["charlink"]; 
 
 export async function generateMetadata({
   params,
@@ -16,19 +19,23 @@ export async function generateMetadata({
   const routeParams = await params;
   const slugPath = routeParams.slug ? routeParams.slug.join('/') : '';
 
-  const docs = await getPages();
+  const docs = await getPages(sections);
   const doc = docs.find((doc) => doc.slug === slugPath);
 
   if (!doc) return {};
 
+  const imageUrl = doc.metadata.image ? 
+    (typeof doc.metadata.image === 'string' ? doc.metadata.image : urlFor(doc.metadata.image).url()) : 
+    undefined;
+
   return Meta.generate({
     title: doc.metadata.title + " – " + schema.name,
-    description: doc.metadata.summary,
+    description: doc.metadata.summary ?? "",
     baseURL,
     path: `/${doc.slug}`,
     type: "article",
     publishedTime: doc.metadata.updatedAt,
-    image: doc.metadata.image || `/api/og/generate?title=${encodeURIComponent(doc.metadata.title)}&description=${encodeURIComponent(doc.metadata.summary)}`,
+    image: imageUrl ?? `/api/og/generate?title=${encodeURIComponent(doc.metadata.title)}`,
   });
 }
 
@@ -37,22 +44,26 @@ export default async function Docs({
  }: { params: Promise<{ slug: string[] }> }) {
   const routeParams = await params;
   const slugPath = routeParams.slug.join('/');
-
-  let doc = getPages().find((doc) => doc.slug === slugPath);
+  
+  const allDocs = await getPages(sections);
+  const doc = allDocs.find((d) => d.slug === slugPath);
 
   if (!doc) {
     notFound();
   }
   
-  const { prevPage, nextPage } = getAdjacentPages(slugPath, 'section');
+  const { prevPage, nextPage } = await getAdjacentPages(slugPath, sections);
   
-  // Determine section title - use "Docs" for top-level elements
   const sectionTitle = routeParams.slug.length === 1 && !routeParams.slug[0].includes('/') 
     ? "Docs"
     : routeParams.slug[0]
       ?.split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+
+  const resolvedImage = doc.metadata.image && typeof doc.metadata.image !== 'string' 
+    ? urlFor(doc.metadata.image).url() 
+    : doc.metadata.image;
   
   return (
     <>
@@ -61,15 +72,13 @@ export default async function Docs({
           <Schema
             as="techArticle"
             title={doc.metadata.title + " – " + schema.name}
-            description={doc.metadata.summary}
+            description={doc.metadata.summary ?? ""}
             baseURL={baseURL}
             path={`/${doc.slug}`}
             datePublished={doc.metadata.updatedAt}
             dateModified={doc.metadata.updatedAt}
-            image={doc.metadata.image}
-            author={{
-              name: schema.name
-            }}
+            image={resolvedImage}
+            author={{ name: schema.name }}
           />
           <Column fillWidth gap="8" vertical="center" paddingTop="40">
             <Text variant="label-default-l" onBackground="neutral-medium">{sectionTitle}</Text>
@@ -77,12 +86,9 @@ export default async function Docs({
             <Text variant="body-default-s" onBackground="neutral-weak">
               Last update: {formatDate(doc.metadata.updatedAt)}
             </Text>
-            <Button className="mt-20" href={"https://github.com/charisprod/charlink-docs/blob/main/src/content/" + doc.slug + ".mdx"} size="s" variant="secondary" prefixIcon="github" weight="default" data-border="rounded">
-              Read on GitHub
-            </Button>
           </Column>
-          {doc.metadata.image && (
-            <Media border="neutral-alpha-medium" enlarge src={doc.metadata.image} alt={"Thumbnail of " + doc.metadata.title} aspectRatio="16 / 9" radius="m" sizes="(max-width: 768px) 100vw, 768px" priority />
+          {resolvedImage && (
+            <Media border="neutral-alpha-medium" enlarge src={resolvedImage} alt={doc.metadata.title} aspectRatio="16 / 9" radius="m" />
           )}
           <Column as="article" fillWidth>
             <CustomMDX source={doc.content} />
@@ -91,50 +97,28 @@ export default async function Docs({
           <Row gap="16" fillWidth horizontal="between" s={{direction: "column"}}>              
               {prevPage ? (
                 <Row fillWidth>
-                <Row maxWidth={20}>
-                <Card
-                  fillWidth
-                  border="neutral-alpha-medium"
-                  vertical="center" gap="4"
-                  href={`/${prevPage.slug}`} 
-                  radius="l" 
-                  paddingX="16"
-                >
-                  <Icon name="chevronLeft" size="s" onBackground="neutral-weak" />
-                  <Column gap="4" vertical="center" paddingX="16" paddingY="12">
-                    <Text variant="label-default-s" onBackground="neutral-weak">
-                      {prevPage.slug.includes('/') ? 
-                        `${prevPage.slug.split('/')[0].split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}` : 
-                        'page'}
-                    </Text>
-                    <Text onBackground="neutral-strong" variant="heading-strong-m" wrap="balance">
-                      {prevPage.metadata.title}
-                    </Text>
-                  </Column>
-                </Card>
-                </Row>
+                  <Row maxWidth={20}>
+                    <Card fillWidth border="neutral-alpha-medium" vertical="center" gap="4" href={`/${prevPage.slug}`} radius="l" paddingX="16">
+                      <Icon name="chevronLeft" size="s" onBackground="neutral-weak" />
+                      <Column gap="4" vertical="center" paddingX="16" paddingY="12">
+                        <Text variant="label-default-s" onBackground="neutral-weak">
+                          {prevPage.slug.includes('/') ? prevPage.slug.split('/')[0].toUpperCase() : 'page'}
+                        </Text>
+                        <Text onBackground="neutral-strong" variant="heading-strong-m">{prevPage.metadata.title}</Text>
+                      </Column>
+                    </Card>
+                  </Row>
                 </Row>
               ) : <Row/>}
               {nextPage ? (
                 <Row fillWidth horizontal="end">
                   <Row maxWidth={20}>
-                    <Card
-                      fillWidth
-                      border="neutral-alpha-medium"
-                      horizontal="end" vertical="center" gap="4"
-                      href={`/${nextPage.slug}`} 
-                      radius="l" 
-                      paddingX="16"
-                    >
+                    <Card fillWidth border="neutral-alpha-medium" horizontal="end" vertical="center" gap="4" href={`/${nextPage.slug}`} radius="l" paddingX="16">
                       <Column horizontal="end" gap="4" vertical="center" paddingX="16" paddingY="12">
                         <Text variant="label-default-s" onBackground="neutral-weak">
-                          {nextPage.slug.includes('/') ? 
-                            `${nextPage.slug.split('/')[0].split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}` : 
-                            'page'}
+                          {nextPage.slug.includes('/') ? nextPage.slug.split('/')[0].toUpperCase() : 'page'}
                         </Text>
-                        <Text onBackground="neutral-strong" variant="heading-strong-m" wrap="balance">
-                          {nextPage.metadata.title}
-                        </Text>
+                        <Text onBackground="neutral-strong" variant="heading-strong-m">{nextPage.metadata.title}</Text>
                       </Column>
                       <Icon name="chevronRight" size="s" onBackground="neutral-weak" />
                     </Card>

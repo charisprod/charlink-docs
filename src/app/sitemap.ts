@@ -2,7 +2,7 @@ import { getPages } from "@/app/utils/utils";
 import { baseURL } from "@/resources";
 
 export default async function sitemap() {
-  const pages = getPages(["src", "content"]).map((post) => ({
+  const pages = (await getPages()).map((post) => ({
     url: `${baseURL}/${post.slug}`,
     lastModified: post.metadata.updatedAt,
   }));

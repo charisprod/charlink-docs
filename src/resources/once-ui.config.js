@@ -1,8 +1,7 @@
 const baseURL = "https://charlink-docs.charisprod.xyz";
 
 const routes = {
-  "/showcase": true,
-  "/submission": true,
+  "/": true,
 }
 
 // Import and set font for each variant
@@ -77,7 +76,7 @@ const layout = {
   },
   sidebar: {
     width: 17, // width of the sidebar
-    collapsible: false, // accordion or static render
+    collapsible: true, // accordion or static render
   },
   content: {
     width: 44, // width of the main content block
@@ -151,16 +150,6 @@ const meta = {
     description: schema.description,
     path: "/",
     image: `/api/og/generate?title=CharLink Docs&description=${schema.description}`
-  },
-  showcase: {
-    title: `CharLink Showcase`,
-    description: `Explore a collection of creative works and interesting projects submitted by the community. Discover inspiration from various images, designs, and visual content displayed in an interactive gallery.`,
-    path: "/showcase"
-  },
-  submission: {
-    title: `CharLink Submission`,
-    description: `Submit your own work or project to be featured in the CharLink showcase. Share your visual creations, designs, or unique content with the community, and get a chance to be displayed in the main gallery.`,
-    path: "/submission"
   },
 };
 

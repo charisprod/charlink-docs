@@ -1,6 +1,7 @@
 import { getPages, sortPages } from "@/app/utils/utils";
 import { Card, Column, Icon, Row, Media, Text } from "@once-ui-system/core";
 import React from "react";
+import { urlFor } from "@/app/utils/sanity";
 
 interface props extends Omit<React.ComponentProps<typeof Card>, 'onClick'> {
   range?: [number] | [number, number];
@@ -12,18 +13,13 @@ interface props extends Omit<React.ComponentProps<typeof Card>, 'onClick'> {
 }
 
 function formatSlug(slug: string): React.JSX.Element {
-  // Split the slug by '/'
   const parts = slug.split('/');
-  
-  // Remove the last part as it's not needed (it's the title)
   const pathParts = parts.slice(0, -1);
   
-  // If there are no path parts, return an empty fragment
   if (pathParts.length === 0) {
     return <></>;
   }
   
-  // Format each part to capitalize first letter of each word
   const formattedParts = pathParts.map(part => 
     part.split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -42,32 +38,26 @@ function formatSlug(slug: string): React.JSX.Element {
   );
 }
 
-export function PageList({
+export async function PageList({
   range,
   thumbnail = false,
   path = [],
-  sortType = 'order', // Changed default from 'date' to 'order' to respect meta.json ordering
+  sortType = 'order',
   depth,
   description = true,
   ...rest
 }: props) {
-  // Create a base path array starting with src/content
-  const basePath = ["src", "content"];
-  
-  // Combine the base path with any additional path segments
-  const fullPath = [...basePath, ...path];
-  
-  // Get pages from the specified path
-  let pages = getPages(fullPath);
+  let pages = await getPages();
+  if (path && path.length > 0) {
+    const filterPath = path.join('/');
+    pages = pages.filter(page => page.slug.startsWith(filterPath));
+  }
 
-  // Filter pages by depth if specified
   if (depth !== undefined) {
     pages = pages.filter(page => {
-      // Count the number of slashes in the slug to determine depth
-      // Exclude the path prefix from the count
       const pathPrefix = path.join('/');
       const relativePath = pathPrefix ? 
-        page.slug.replace(pathPrefix + '/', '') : 
+        page.slug.replace(pathPrefix + (pathPrefix.endsWith('/') ? '' : '/'), '') : 
         page.slug;
       
       const slashCount = (relativePath.match(/\//g) || []).length;
@@ -75,7 +65,6 @@ export function PageList({
     });
   }
 
-  // Sort pages using the centralized sorting function
   const sortedPages = sortPages(pages, sortType);
 
   const displayedPages = range 
@@ -86,35 +75,41 @@ export function PageList({
 
   return (
     <>
-      {displayedPages.length > 0 && displayedPages.map((page) => (
-        <Card href={`/${page.slug}`} key={page.slug} radius="l" padding="2" gap="16" s={{direction: "column"}} border="neutral-alpha-weak" fillWidth {...rest}>
-          {page.metadata.image && thumbnail && (
-            <Media
-              priority
-              sizes="480px"
-              border="neutral-alpha-weak"
-              cursor="interactive"
-              radius="m"
-              src={page.metadata.image}
-              alt={"Thumbnail of " + page.metadata.title}
-              aspectRatio="16 / 9"
-            />
-          )}
-          <Column fillWidth gap="4" vertical="center" paddingX="16" paddingY="12">
-            <Text variant="label-default-s" onBackground="neutral-weak">
-              {formatSlug(page.slug)}
-            </Text>
-            <Text variant="heading-strong-l" wrap="balance" onBackground="neutral-strong">
-              {page.metadata.title}
-            </Text>
-            {description && page.metadata.summary && (
-              <Text variant="body-default-s" onBackground="neutral-medium" marginTop="12" wrap="balance">
-                {page.metadata.summary}
-              </Text>
+      {displayedPages.length > 0 && displayedPages.map((page) => {
+        const imageUrl = page.metadata.image && typeof page.metadata.image !== 'string' 
+          ? urlFor(page.metadata.image).url() 
+          : page.metadata.image;
+
+        return (
+          <Card href={`/${page.slug}`} key={page.slug} radius="l" padding="2" gap="16" s={{direction: "column"}} border="neutral-alpha-weak" fillWidth {...rest}>
+            {imageUrl && thumbnail && (
+              <Media
+                priority
+                sizes="480px"
+                border="neutral-alpha-weak"
+                cursor="interactive"
+                radius="m"
+                src={imageUrl}
+                alt={"Thumbnail of " + page.metadata.title}
+                aspectRatio="16 / 9"
+              />
             )}
-          </Column>
-        </Card>
-      ))}
+            <Column fillWidth gap="4" vertical="center" paddingX="16" paddingY="12">
+              <Text variant="label-default-s" onBackground="neutral-weak">
+                {formatSlug(page.slug)}
+              </Text>
+              <Text variant="heading-strong-l" wrap="balance" onBackground="neutral-strong">
+                {page.metadata.title}
+              </Text>
+              {description && page.metadata.summary && (
+                <Text variant="body-default-s" onBackground="neutral-medium" marginTop="12" wrap="balance">
+                  {page.metadata.summary}
+                </Text>
+              )}
+            </Column>
+          </Card>
+        );
+      })}
     </>
   );
 }

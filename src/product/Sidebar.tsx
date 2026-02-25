@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Schemes, Accordion, Column, Flex, Icon, Row, Tag, ToggleButton } from "@once-ui-system/core";
 import { usePathname } from 'next/navigation';
-import { routes, layout } from "@/resources";
+import { layout } from "@/resources";
 
 import styles from './Sidebar.module.scss';
 
@@ -246,35 +246,30 @@ const SidebarContent: React.FC<{
     );
   };
   
-  const resourcesSection =
-    !(routes["/submission"] || routes["/showcase"]) ? null : (
-      <Column gap="2" marginTop="32" paddingLeft="4">
-        <Row
-          textVariant="label-strong-s"
-          onBackground="brand-strong"
-          paddingLeft="8"
-          paddingY="12"
-        >
-          Community
-        </Row>
-        {routes["/submission"] && (
-          <ResourceLink
-            href="/submission"
-            icon="changelog"
-            label="Submission"
-            pathname={pathname}
-          />
-        )}
-        {routes["/showcase"] && (
-          <ResourceLink
-            href="/showcase"
-            icon="image"
-            label="Showcase"
-            pathname={pathname}
-          />
-        )}
-      </Column>
-    );
+  const resourcesSection = (
+    <Column gap="2" marginTop="32" paddingLeft="4">
+      <Row
+        textVariant="label-strong-s"
+        onBackground="brand-strong"
+        paddingLeft="8"
+        paddingY="12"
+      >
+        Community
+      </Row>
+      <ResourceLink
+        href="https://charisprod.xyz/submission"
+        icon="changelog"
+        label="Submission"
+        pathname={pathname}
+      />
+      <ResourceLink
+        href="https://charisprod.xyz/showcase"
+        icon="image"
+        label="Showcase"
+        pathname={pathname}
+      />
+    </Column>
+  );
 
   return (
     <>
